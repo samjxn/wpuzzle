@@ -27,15 +27,27 @@ export interface GameState {
   revealRow: number | null;
 }
 
+export interface GameStats {
+  gamesPlayed: number;
+  gamesWon: number;
+  currentWinStreak: number;
+  longestWinStreak: number;
+  lastCompletedDay: number | null;
+  lastCompletedOutcome: "won" | "lost" | null;
+  guessDistribution: [number, number, number, number, number, number];
+}
+
 export type GameAction =
   | { type: "key"; payload: string }
   | { type: "backspace" }
   | { type: "submit" }
   | { type: "reset"; payload?: { solution?: string } }
   | { type: "reveal-next" }
-  | { type: "reveal-complete" };
+  | { type: "reveal-complete" }
+  | { type: "set-message"; payload: string | null };
 
 export interface GameContextValue {
   state: GameState;
+  stats: GameStats;
   dispatch: Dispatch<GameAction>;
 }

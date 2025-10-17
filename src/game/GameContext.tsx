@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from "react";
 import {
   pickRandomSolution,
@@ -17,6 +18,7 @@ import type {
   GameAction,
   GameContextValue,
   GameState,
+  GameStats,
   LetterStatus,
   Tile,
 } from "./types";
@@ -26,11 +28,18 @@ const MAX_TURNS = 6;
 const REVEAL_DELAY_MS = 250;
 const STORAGE_KEY = "wpuzzle:game-state";
 const STORAGE_VERSION = 1;
+const STATS_STORAGE_KEY = "wpuzzle:stats";
+const STATS_STORAGE_VERSION = 1;
 
 type PersistedGameSnapshot = {
   version: number;
   day: number;
   state: GameState;
+};
+
+type PersistedStatsSnapshot = {
+  version: number;
+  data: GameStats;
 };
 
 const sanitizeStateForPersistence = (state: GameState): GameState => ({
@@ -87,6 +96,92 @@ const persistState = (state: GameState, day: number): void => {
       state: sanitizeStateForPersistence(state),
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // Ignore storage write failures (e.g., quota exceeded or privacy mode)
+  }
+};
+
+const createInitialStats = (): GameStats => ({
+  gamesPlayed: 0,
+  gamesWon: 0,
+  currentWinStreak: 0,
+  longestWinStreak: 0,
+  lastCompletedDay: null,
+  lastCompletedOutcome: null,
+  guessDistribution: [0, 0, 0, 0, 0, 0],
+});
+
+const loadPersistedStats = (): GameStats => {
+  if (typeof window === "undefined") {
+    return createInitialStats();
+  }
+
+  try {
+    const raw = window.localStorage.getItem(STATS_STORAGE_KEY);
+    if (!raw) {
+      return createInitialStats();
+    }
+
+    const parsed = JSON.parse(raw) as PersistedStatsSnapshot;
+    if (
+      parsed == null ||
+      parsed.version !== STATS_STORAGE_VERSION ||
+      parsed.data == null
+    ) {
+      window.localStorage.removeItem(STATS_STORAGE_KEY);
+      return createInitialStats();
+    }
+
+    const { data } = parsed;
+    if (!Array.isArray(data?.guessDistribution)) {
+      return createInitialStats();
+    }
+    if (data.guessDistribution.length !== 6) {
+      return createInitialStats();
+    }
+
+    const guessDistribution = [
+      data.guessDistribution[0] ?? 0,
+      data.guessDistribution[1] ?? 0,
+      data.guessDistribution[2] ?? 0,
+      data.guessDistribution[3] ?? 0,
+      data.guessDistribution[4] ?? 0,
+      data.guessDistribution[5] ?? 0,
+    ] as GameStats["guessDistribution"];
+
+    const base: GameStats = {
+      ...createInitialStats(),
+      ...data,
+      guessDistribution,
+    };
+
+    const longest =
+      typeof base.longestWinStreak === "number" &&
+      Number.isFinite(base.longestWinStreak)
+        ? base.longestWinStreak
+        : 0;
+
+    return {
+      ...base,
+      longestWinStreak: longest,
+    };
+  } catch {
+    window.localStorage.removeItem(STATS_STORAGE_KEY);
+    return createInitialStats();
+  }
+};
+
+const persistStats = (stats: GameStats): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const payload: PersistedStatsSnapshot = {
+      version: STATS_STORAGE_VERSION,
+      data: stats,
+    };
+    window.localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(payload));
   } catch {
     // Ignore storage write failures (e.g., quota exceeded or privacy mode)
   }
@@ -348,9 +443,78 @@ const reducer = (state: GameState, action: GameAction): GameState => {
             : null,
       };
     }
+    case "set-message": {
+      return {
+        ...state,
+        message: action.payload,
+      };
+    }
     default:
       return state;
   }
+};
+
+const updateStatsWithResult = (
+  stats: GameStats,
+  day: number,
+  outcome: "won" | "lost",
+  guessCount: number,
+): GameStats => {
+  if (
+    stats.lastCompletedDay === day &&
+    stats.lastCompletedOutcome === outcome
+  ) {
+    return stats;
+  }
+
+  if (stats.lastCompletedDay === day) {
+    return stats;
+  }
+
+  const gamesPlayed = stats.gamesPlayed + 1;
+  const gamesWon = outcome === "won" ? stats.gamesWon + 1 : stats.gamesWon;
+
+  const guessDistribution = [
+    ...stats.guessDistribution,
+  ] as GameStats["guessDistribution"];
+
+  if (outcome === "won") {
+    const clampedIndex = Math.max(1, Math.min(6, guessCount)) - 1;
+    guessDistribution[clampedIndex] += 1;
+  }
+
+  let currentWinStreak: number;
+  let longestWinStreak = stats.longestWinStreak;
+  if (outcome === "won") {
+    const isConsecutiveWin =
+      stats.lastCompletedDay != null &&
+      day === stats.lastCompletedDay + 1 &&
+      stats.lastCompletedOutcome === "won";
+    currentWinStreak = isConsecutiveWin ? stats.currentWinStreak + 1 : 1;
+
+    if (
+      stats.lastCompletedDay != null &&
+      day > stats.lastCompletedDay + 1
+    ) {
+      currentWinStreak = 1;
+    }
+
+    if (currentWinStreak > longestWinStreak) {
+      longestWinStreak = currentWinStreak;
+    }
+  } else {
+    currentWinStreak = 0;
+  }
+
+  return {
+    gamesPlayed,
+    gamesWon,
+    currentWinStreak,
+    longestWinStreak,
+    lastCompletedDay: day,
+    lastCompletedOutcome: outcome,
+    guessDistribution,
+  };
 };
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -366,7 +530,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     const persisted = loadPersistedState(solution, initialPuzzleDay);
     return persisted ?? createInitialState(solution);
   });
+  const [stats, setStats] = useState<GameStats>(() => loadPersistedStats());
   const puzzleDayRef = useRef(initialPuzzleDay);
+  const previousStatusRef = useRef(state.status);
+  const hasLoggedSolutionRef = useRef(false);
 
   useEffect(() => {
     if (!state.isRevealing || state.pendingStatuses == null) {
@@ -414,7 +581,46 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
     persistState(state, puzzleDayRef.current);
   }, [state]);
 
-  const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+  useEffect(() => {
+    persistStats(stats);
+  }, [stats]);
+
+  useEffect(() => {
+    if (hasLoggedSolutionRef.current || typeof window === "undefined") {
+      return;
+    }
+
+    hasLoggedSolutionRef.current = true;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("debug")?.toLowerCase() === "true") {
+      console.info(`[wpuzzle] Today's solution: ${state.solution}`);
+    }
+  }, [state.solution]);
+
+  useEffect(() => {
+    const previousStatus = previousStatusRef.current;
+    const currentStatus = state.status;
+    if (previousStatus === currentStatus) {
+      return;
+    }
+
+    if (currentStatus === "won" || currentStatus === "lost") {
+      const activeRowIndex =
+        state.status === "won" ? state.activeRow : Math.min(state.activeRow, MAX_TURNS - 1);
+      const guessCount = activeRowIndex + 1;
+      const day = puzzleDayRef.current;
+      setStats((currentStats) =>
+        updateStatsWithResult(currentStats, day, currentStatus, guessCount),
+      );
+    }
+
+    previousStatusRef.current = currentStatus;
+  }, [state.status, state.activeRow]);
+
+  const value = useMemo(
+    () => ({ state, dispatch, stats }),
+    [state, dispatch, stats],
+  );
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };
 
