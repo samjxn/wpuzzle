@@ -17,6 +17,10 @@ The development server runs at `http://localhost:5173` by default.
 - `npm run build` — type-check the project and create an optimized production build.
 - `npm run preview` — serve the production build locally for smoke testing.
 
+## Date Overrides
+
+Append `?date=YYYY-MM-DD` to the app URL to preview the puzzle for a specific day (for example, `http://localhost:5173/?date=2024-01-15`). Omitting the parameter falls back to today's puzzle.
+
 ## Project Structure
 
 - `src/` — React components, game state management, and styles.

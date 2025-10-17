@@ -1,3 +1,4 @@
+import { getReferenceDate } from "../utils/referenceDate";
 // Load 5_words.txt and 5_answers.txt into memory
 import wordsRaw from "./5_words.txt?raw";
 import answersRaw from "./5_answers.txt?raw";
@@ -23,7 +24,7 @@ const RNG_INCREMENT = 1013904223;
 const lcg = (seed: number): number =>
   (Math.imul(RNG_MULTIPLIER, seed >>> 0) + RNG_INCREMENT) >>> 0;
 
-export const getPuzzleDay = (date: Date = new Date()): number => {
+export const getPuzzleDay = (date: Date = getReferenceDate()): number => {
   const utcMidnight = Date.UTC(
     date.getUTCFullYear(),
     date.getUTCMonth(),
@@ -40,7 +41,9 @@ const getSolutionIndexForDay = (dayNumber: number): number => {
   return randomValue % POSSIBLE_SOLUTIONS.length;
 };
 
-export const pickRandomSolution = (referenceDate: Date = new Date()): string => {
+export const pickRandomSolution = (
+  referenceDate: Date = getReferenceDate(),
+): string => {
   if (POSSIBLE_SOLUTIONS.length === 0) {
     throw new Error("No possible solutions available.");
   }

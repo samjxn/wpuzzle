@@ -11,6 +11,7 @@ import {
   isValidGuess,
   getPuzzleDay,
 } from "../data/dictionary";
+import { getReferenceDate } from "../utils/referenceDate";
 import type {
   Board,
   GameAction,
@@ -104,7 +105,9 @@ const createEmptyBoard = (): Board =>
   Array.from({ length: MAX_TURNS }, createEmptyRow);
 
 const createInitialState = (solution?: string): GameState => {
-  const resolvedSolution = (solution ?? pickRandomSolution()).toUpperCase();
+  const resolvedSolution = (
+    solution ?? pickRandomSolution(getReferenceDate())
+  ).toUpperCase();
   return {
     board: createEmptyBoard(),
     activeRow: 0,
@@ -359,11 +362,13 @@ const reducer = (state: GameState, action: GameAction): GameState => {
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  let initialPuzzleDay = 0;
+  const referenceDate = useMemo(() => getReferenceDate(), []);
+  const initialPuzzleDay = useMemo(
+    () => getPuzzleDay(referenceDate),
+    [referenceDate],
+  );
   const [state, dispatch] = useReducer(reducer, undefined, () => {
-    const referenceDate = new Date();
     const solution = pickRandomSolution(referenceDate);
-    initialPuzzleDay = getPuzzleDay(referenceDate);
     const persisted = loadPersistedState(solution, initialPuzzleDay);
     return persisted ?? createInitialState(solution);
   });
@@ -405,8 +410,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [state.isRevealing, state.pendingStatuses, state.revealIndex, dispatch]);
 
   useEffect(() => {
-    puzzleDayRef.current = getPuzzleDay();
-  }, [state.solution]);
+    puzzleDayRef.current = getPuzzleDay(referenceDate);
+  }, [referenceDate, state.solution]);
 
   useEffect(() => {
     if (state.isRevealing) {
