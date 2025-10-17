@@ -124,11 +124,6 @@ const createInitialState = (solution?: string): GameState => {
   };
 };
 
-enum TileStatus {
-  correct = "correct",
-  present = "present",
-}
-
 const evaluateGuess = (guess: string, solution: string): LetterStatus[] => {
   const solutionChars = solution.split("");
   const statuses: LetterStatus[] = Array(WORD_LENGTH).fill("absent");
@@ -249,8 +244,7 @@ const reducer = (state: GameState, action: GameAction): GameState => {
       if (state.cursor < WORD_LENGTH) {
         return {
           ...state,
-          message:
-            state.cursor < WORD_LENGTH ? "Not enough letters." : state.message,
+          message: "Not enough letters.",
         };
       }
 
@@ -431,6 +425,3 @@ export const useGameContext = (): GameContextValue => {
   }
   return context;
 };
-
-export const getWordLength = () => WORD_LENGTH;
-export const getMaxTurns = () => MAX_TURNS;

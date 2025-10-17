@@ -12,7 +12,7 @@ const parseWordList = (raw: string): string[] =>
 const VALID_GUESSES = parseWordList(wordsRaw);
 const POSSIBLE_SOLUTIONS = parseWordList(answersRaw);
 
-export const ALL_WORDS = new Set<String>([
+const ALL_WORDS = new Set<string>([
   ...VALID_GUESSES,
   ...POSSIBLE_SOLUTIONS,
 ]);

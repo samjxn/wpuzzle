@@ -54,5 +54,3 @@ export const getReferenceDate = (): Date => {
     return new Date();
   }
 };
-
-export const getDateOverrideParamName = (): string => DATE_OVERRIDE_PARAM;
