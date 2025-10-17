@@ -3,6 +3,7 @@ import { GameProvider } from "./game/GameContext";
 import { Board } from "./components/Board";
 import { Keyboard } from "./components/Keyboard";
 import { StatusBar } from "./components/StatusBar";
+import { EndGameDialog } from "./components/EndGameDialog";
 
 const App: React.FC = () => (
   <GameProvider>
@@ -15,6 +16,7 @@ const App: React.FC = () => (
         <StatusBar />
         <Keyboard />
       </main>
+      <EndGameDialog />
     </div>
   </GameProvider>
 );
