@@ -12,8 +12,10 @@ const App: React.FC = () => (
         <h1>this is a word puzzle.</h1>
       </header>
       <main className="app-main">
-        <Board />
-        <StatusBar />
+        <div className="game-stage">
+          <Board />
+          <StatusBar />
+        </div>
         <Keyboard />
       </main>
       <EndGameDialog />

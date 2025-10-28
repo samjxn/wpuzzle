@@ -1,7 +1,24 @@
 import React, { useEffect } from "react";
 import { useGameContext } from "../game/GameContext";
 
-const KEY_ROWS = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+const KEY_ROWS = [
+  { id: "top", keys: "QWERTYUIOP" },
+  { id: "home", keys: "ASDFGHJKL" },
+  { id: "bottom", keys: "ZXCVBNM" },
+] as const;
+
+const ASSET_BASE = import.meta.env.BASE_URL ?? "/";
+
+const COMMAND_KEYS = {
+  ENTER: {
+    icon: `${ASSET_BASE}enter.svg`,
+    label: "Enter",
+  },
+  BACKSPACE: {
+    icon: `${ASSET_BASE}backspace.svg`,
+    label: "Backspace",
+  },
+} as const;
 
 export const Keyboard: React.FC = () => {
   const { state, dispatch } = useGameContext();
@@ -38,6 +55,28 @@ export const Keyboard: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [dispatch]);
 
+  const renderCommandKey = (key: keyof typeof COMMAND_KEYS) => {
+    const { icon, label } = COMMAND_KEYS[key];
+    return (
+      <button
+        type="button"
+        key={key}
+        className="key key-command"
+        onClick={() => handleKeyClick(key)}
+        aria-label={label}
+      >
+        <span className="sr-only">{label}</span>
+        <img
+          className="key-command-icon"
+          src={icon}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+        />
+      </button>
+    );
+  };
+
   const renderKey = (key: string) => {
     const upperKey = key.toUpperCase();
     const status = state.usedLetters[upperKey] ?? "empty";
@@ -55,27 +94,11 @@ export const Keyboard: React.FC = () => {
 
   return (
     <section className="keyboard" aria-label="Virtual keyboard">
-      {KEY_ROWS.map((row) => (
-        <div className="keyboard-row" key={row}>
-          {row === "ZXCVBNM" && (
-            <button
-              type="button"
-              className="key key-command"
-              onClick={() => handleKeyClick("BACKSPACE")}
-            >
-              Backspace
-            </button>
-          )}
-          {row.split("").map(renderKey)}
-          {row === "ZXCVBNM" && (
-            <button
-              type="button"
-              className="key key-command"
-              onClick={() => handleKeyClick("ENTER")}
-            >
-              Enter
-            </button>
-          )}
+      {KEY_ROWS.map(({ id, keys }) => (
+        <div className="keyboard-row" data-row={id} key={id}>
+          {id === "bottom" && renderCommandKey("ENTER")}
+          {keys.split("").map(renderKey)}
+          {id === "bottom" && renderCommandKey("BACKSPACE")}
         </div>
       ))}
     </section>

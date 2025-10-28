@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 
 export default defineConfig({
   plugins: [react()],
-  base: '/wpuzzle/',
+  base: "/wpuzzle/",
   server: {
     port: 5173,
     open: false,

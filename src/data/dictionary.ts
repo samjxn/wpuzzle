@@ -12,10 +12,7 @@ const parseWordList = (raw: string): string[] =>
 const VALID_GUESSES = parseWordList(wordsRaw);
 const POSSIBLE_SOLUTIONS = parseWordList(answersRaw);
 
-const ALL_WORDS = new Set<string>([
-  ...VALID_GUESSES,
-  ...POSSIBLE_SOLUTIONS,
-]);
+const ALL_WORDS = new Set<string>([...VALID_GUESSES, ...POSSIBLE_SOLUTIONS]);
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const RNG_MULTIPLIER = 1664525;

@@ -6,9 +6,7 @@ export const StatusBar: React.FC = () => {
 
   return (
     <section className="status-bar" aria-live="polite">
-      <div className="status-message">
-        {state.message ?? ""}
-      </div>
+      <div className="status-message">{state.message ?? ""}</div>
     </section>
   );
 };

@@ -18,11 +18,22 @@ body,
   min-height: 100vh;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 .app-shell {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 1.5rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
   gap: 1.5rem;
   box-sizing: border-box;
 }
@@ -42,8 +53,24 @@ body,
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 1.5rem;
+}
+
+.game-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  min-height: 0;
+}
+
+@media (max-height: 720px) {
+  .game-stage {
+    justify-content: flex-start;
+  }
 }
 
 .board {
@@ -108,7 +135,7 @@ body,
   border-color: #1f2937;
 }
 
-.tile[data-revealed='true'] {
+.tile[data-revealed="true"] {
   animation: tile-flip 0.5s linear forwards;
 }
 
@@ -169,29 +196,56 @@ body,
 }
 
 .keyboard {
+  --key-gap: clamp(0.2rem, 1vw, 0.65rem);
+  --key-width: clamp(1.75rem, 6.8vw, 3.2rem);
+  --key-height: clamp(2.4rem, 7vw, 3.5rem);
+  --command-width: clamp(2.6rem, 9vw, 4.6rem);
+  margin-top: auto;
+  width: min(100%, 44rem);
+  margin-inline: auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: clamp(0.4rem, 1.2vw, 0.75rem);
+  padding: clamp(0.45rem, 1.2vw, 0.85rem) clamp(0.5rem, 2.4vw, 1.1rem)
+    calc(clamp(0.45rem, 1.2vw, 0.85rem) + env(safe-area-inset-bottom, 0));
+  box-sizing: border-box;
 }
 
 .keyboard-row {
+  width: 100%;
   display: flex;
   justify-content: center;
-  width: 100%;
-  gap: 0.5rem;
+  gap: var(--key-gap);
+  padding-inline: var(--row-offset, 0);
+}
+
+.keyboard-row[data-row="home"] {
+  --row-offset: calc((var(--key-width) + var(--key-gap)) * 0.55);
+}
+
+.keyboard-row[data-row="bottom"] {
+  --row-offset: calc((var(--key-width) * 1.4) + var(--key-gap));
 }
 
 .key {
-  flex: 1;
-  padding: 0.75rem 0.5rem;
+  flex: 0 0 var(--key-width);
+  width: var(--key-width);
+  height: var(--key-height);
+  padding: clamp(0.45rem, 1.5vw, 0.7rem) clamp(0.3rem, 0.9vw, 0.5rem);
   border-radius: 0.5rem;
   border: none;
-  background:  #475569;
+  background: #475569;
   color: #e2e8f0;
   font-weight: 600;
   cursor: pointer;
   text-transform: uppercase;
+  font-size: clamp(0.9rem, 2.4vw, 1rem);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   transition:
     transform 0.1s ease-in-out,
     background 0.2s;
@@ -396,8 +450,20 @@ body,
 }
 
 .key-command {
-  min-width: 4rem;
+  flex: 0 0 var(--command-width);
+  width: var(--command-width);
+  height: var(--key-height);
   text-transform: none;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  color: #f8fafc;
+  gap: 0.25rem;
+}
+
+.key-command-icon {
+  width: clamp(1.1rem, 3vw, 1.4rem);
+  height: clamp(1.1rem, 3vw, 1.4rem);
+  filter: brightness(0) invert(1);
+  display: block;
 }
 
 @media (max-width: 480px) {

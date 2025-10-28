@@ -197,10 +197,7 @@ export const EndGameDialog: React.FC = () => {
             <span className="stat-label">Longest streak (days)</span>
           </div>
         </section>
-        <section
-          className="guess-distribution"
-          aria-label="Guess distribution"
-        >
+        <section className="guess-distribution" aria-label="Guess distribution">
           <h3 className="distribution-title">Guess distribution</h3>
           <ul className="distribution-list">
             {guessDistributionLines.map(({ label, count, fillRatio }) => (

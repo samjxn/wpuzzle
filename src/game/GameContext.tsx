@@ -51,7 +51,10 @@ const sanitizeStateForPersistence = (state: GameState): GameState => ({
   revealRow: null,
 });
 
-const loadPersistedState = (solution: string, day: number): GameState | null => {
+const loadPersistedState = (
+  solution: string,
+  day: number,
+): GameState | null => {
   if (typeof window === "undefined") {
     return null;
   }
@@ -492,10 +495,7 @@ const updateStatsWithResult = (
       stats.lastCompletedOutcome === "won";
     currentWinStreak = isConsecutiveWin ? stats.currentWinStreak + 1 : 1;
 
-    if (
-      stats.lastCompletedDay != null &&
-      day > stats.lastCompletedDay + 1
-    ) {
+    if (stats.lastCompletedDay != null && day > stats.lastCompletedDay + 1) {
       currentWinStreak = 1;
     }
 
@@ -606,7 +606,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (currentStatus === "won" || currentStatus === "lost") {
       const activeRowIndex =
-        state.status === "won" ? state.activeRow : Math.min(state.activeRow, MAX_TURNS - 1);
+        state.status === "won"
+          ? state.activeRow
+          : Math.min(state.activeRow, MAX_TURNS - 1);
       const guessCount = activeRowIndex + 1;
       const day = puzzleDayRef.current;
       setStats((currentStats) =>
