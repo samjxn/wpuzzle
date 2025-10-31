@@ -12,10 +12,25 @@
   font-weight: 400;
 }
 
-body,
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
 #root {
   margin: 0;
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  html,
+  body {
+    height: 100dvh;
+  }
 }
 
 .sr-only {
@@ -30,12 +45,20 @@ body,
 }
 
 .app-shell {
+  --shell-padding: clamp(1rem, 3vw, 1.5rem);
+  --board-gap: clamp(0.35rem, 1.4vw, 0.65rem);
+  --board-width-cap: clamp(
+    16rem,
+    calc(100vw - 2 * var(--shell-padding)),
+    44rem
+  );
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding: clamp(1rem, 3vw, 1.5rem);
+  height: 100%;
+  padding: var(--shell-padding);
   gap: 1.5rem;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .app-header,
@@ -51,44 +74,82 @@ body,
 
 .app-main {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  row-gap: clamp(1rem, 3vh, 1.75rem);
   align-items: stretch;
-  gap: 1.5rem;
+  min-height: 0;
+  overflow: visible;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .game-stage {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  row-gap: clamp(0.75rem, 2vh, 1.5rem);
+  justify-items: center;
   align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
   min-height: 0;
+  width: 100%;
+  max-width: min(var(--board-width-cap), 100%);
+  margin-inline: auto;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
-@media (max-height: 720px) {
+@supports (container-type: size) {
   .game-stage {
-    justify-content: flex-start;
+    container-type: size;
   }
 }
 
 .board {
-  display: grid;
-  gap: 0.5rem;
+  --tile-gap: var(--board-gap);
+  aspect-ratio: 5 / 6;
+  width: 100%;
+  max-width: var(--board-width-cap);
+  height: auto;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--tile-gap);
+  justify-self: center;
+  align-self: center;
+  box-sizing: border-box;
+  overflow: visible;
+  min-width: 0;
+}
+
+@supports (container-type: size) {
+  .board {
+    width: min(
+      var(--board-width-cap),
+      100cqw,
+      calc(100cqh * 5 / 6)
+    );
+    max-width: var(--board-width-cap);
+    max-height: calc(100cqh - 2px);
+    align-self: start;
+    justify-self: center;
+  }
 }
 
 .board-row {
   display: grid;
-  grid-template-columns: repeat(5, 3.2rem);
-  gap: 0.5rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--tile-gap);
   perspective: 800px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .tile {
   position: relative;
-  width: 3.2rem;
-  height: 3.2rem;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   transform-style: preserve-3d;
 }
 
@@ -97,9 +158,9 @@ body,
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 0.2rem;
-  border: 2px solid #1f2937;
-  font-size: 1.5rem;
+  border-radius: clamp(0.18rem, 0.6vw, 0.3rem);
+  border: clamp(1px, 0.2vw, 2px) solid #1f2937;
+  font-size: clamp(1.1rem, 3.2vw, 1.8rem);
   font-weight: 600;
   text-transform: uppercase;
   background: #0f172a;
@@ -155,6 +216,9 @@ body,
   gap: 0.75rem;
   text-align: center;
   min-height: 3rem;
+  width: 100%;
+  justify-self: stretch;
+  align-self: stretch;
 }
 
 .status-controls {
@@ -200,8 +264,8 @@ body,
   --key-width: clamp(1.75rem, 6.8vw, 3.2rem);
   --key-height: clamp(2.4rem, 7vw, 3.5rem);
   --command-width: clamp(2.6rem, 9vw, 4.6rem);
-  margin-top: auto;
-  width: min(100%, 44rem);
+  width: 100%;
+  max-width: var(--board-width-cap);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -467,13 +531,47 @@ body,
 }
 
 @media (max-width: 480px) {
-  .board-row {
-    grid-template-columns: repeat(5, 2.6rem);
+  .app-shell {
+    --board-gap: clamp(0.3rem, 2.5vw, 0.5rem);
+    --board-width-cap: clamp(
+      15rem,
+      calc(100vw - 2 * var(--shell-padding)),
+      32rem
+    );
   }
 
-  .tile {
-    width: 2.6rem;
-    height: 2.6rem;
-    font-size: 1.25rem;
+  .game-stage {
+    container-type: normal;
+  }
+
+  .board {
+    width: 100%;
+    max-width: var(--board-width-cap);
+    max-height: 100%;
+    align-self: center;
+    justify-self: stretch;
+  }
+}
+
+@media (max-height: 720px) {
+  .app-shell {
+    gap: 1.25rem;
+    --board-gap: clamp(0.25rem, 1vw, 0.5rem);
+  }
+
+  .app-main {
+    row-gap: 1.25rem;
+  }
+
+  .game-stage {
+    row-gap: clamp(0.6rem, 1.5vh, 1.1rem);
+  }
+
+  .keyboard {
+    --key-gap: clamp(0.3rem, 1vw, 0.6rem);
+    --key-height: clamp(2.1rem, 6.5vw, 3.2rem);
+    padding: clamp(0.35rem, 1vw, 0.7rem)
+      clamp(0.45rem, 2vw, 0.85rem)
+      calc(clamp(0.35rem, 1vw, 0.7rem) + env(safe-area-inset-bottom, 0));
   }
 }
