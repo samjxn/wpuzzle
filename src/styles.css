@@ -23,6 +23,13 @@ body,
   #root {
     min-height: 100dvh;
   }
+  .app-shell {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+  .dialog-card {
+    max-height: min(90dvh, 40rem);
+  }
 }
 
 .sr-only {
@@ -47,6 +54,7 @@ body,
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  height: 100vh;
   padding: var(--shell-padding);
   gap: 1.5rem;
   box-sizing: border-box;
@@ -135,6 +143,21 @@ body,
   transform: rotateY(180deg);
 }
 
+@supports (width: 1cqi) {
+  .board {
+    container-type: inline-size;
+  }
+
+  .tile-face {
+    font-size: clamp(
+      1rem,
+      calc(((100cqi - (4 * var(--tile-gap))) / 5) * .6),
+      2.5rem
+    );
+    font-weight: bold;
+  }
+}
+
 .tile[data-status="correct"] .tile-back {
   background: #538d4e;
   border-color: #538d4e;
@@ -220,9 +243,9 @@ body,
 
 .keyboard {
   --key-gap: clamp(0.2rem, 1vw, 0.65rem);
-  --key-width: clamp(1.75rem, 6.8vw, 3.2rem);
+  --key-width: clamp(1.35rem, 7.3vw, 3.2rem);
   --key-height: clamp(2.4rem, 7vw, 3.5rem);
-  --command-width: clamp(2.6rem, 9vw, 4.6rem);
+  --command-width: clamp(2.1rem, 8vw, 4.6rem);
   width: min(var(--board-width-cap), 100%);
   margin-inline: auto;
   display: flex;
@@ -239,7 +262,8 @@ body,
   display: flex;
   justify-content: center;
   gap: var(--key-gap);
-  padding-inline: var(--row-offset, 0);
+  padding-inline: calc(var(--row-offset, 0px) / 2);
+  box-sizing: border-box;
 }
 
 .keyboard-row[data-row="home"] {
@@ -284,7 +308,7 @@ body,
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: clamp(1rem, 4vw, 1.5rem);
   background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(4px);
   z-index: 1000;
@@ -292,7 +316,9 @@ body,
 
 .dialog-card {
   width: min(28rem, 100%);
-  padding: 2rem;
+  max-height: min(90vh, 40rem);
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
   border-radius: 0.75rem;
   background: #131f3b;
   box-shadow: 0 24px 40px rgba(15, 23, 42, 0.4);
@@ -301,6 +327,8 @@ body,
   gap: 1.25rem;
   align-items: center;
   text-align: center;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dialog-title {
@@ -413,6 +441,10 @@ body,
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.dialog-actions button {
+  width: 100%;
 }
 
 .dialog-share {

@@ -40,6 +40,13 @@ export const EndGameDialog: React.FC = () => {
   const [shareError, setShareError] = useState<string | null>(null);
   const [shareSuccess, setShareSuccess] = useState(false);
   const shareTimeoutRef = useRef<number | null>(null);
+  const handleBackdropClick = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ) => {
+    if (event.target === event.currentTarget) {
+      setIsOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (status === "in-progress") {
@@ -164,7 +171,11 @@ export const EndGameDialog: React.FC = () => {
   }
 
   return (
-    <div className="dialog-backdrop" role="presentation">
+    <div
+      className="dialog-backdrop"
+      role="presentation"
+      onClick={handleBackdropClick}
+    >
       <div
         className="dialog-card"
         role="dialog"
@@ -197,6 +208,28 @@ export const EndGameDialog: React.FC = () => {
             <span className="stat-label">Longest streak (days)</span>
           </div>
         </section>
+        <div className="dialog-actions">
+          <button
+            type="button"
+            className="dialog-share"
+            onClick={handleShare}
+            aria-live="polite"
+          >
+            {shareSuccess ? "Board copied" : "Share board"}
+          </button>
+          {shareError && (
+            <p className="dialog-share-error" role="alert">
+              {shareError}
+            </p>
+          )}
+          <button
+            type="button"
+            className="dialog-close"
+            onClick={() => setIsOpen(false)}
+          >
+            Back to game
+          </button>
+        </div>
         <section className="guess-distribution" aria-label="Guess distribution">
           <h3 className="distribution-title">Guess distribution</h3>
           <ul className="distribution-list">
@@ -217,28 +250,6 @@ export const EndGameDialog: React.FC = () => {
             ))}
           </ul>
         </section>
-        <div className="dialog-actions">
-          <button
-            type="button"
-            className="dialog-share"
-            onClick={handleShare}
-            aria-live="polite"
-          >
-            {shareSuccess ? "Board copied" : "Share board"}
-          </button>
-          {shareError && (
-            <p className="dialog-share-error" role="alert">
-              {shareError}
-            </p>
-          )}
-        </div>
-        <button
-          type="button"
-          className="dialog-close"
-          onClick={() => setIsOpen(false)}
-        >
-          Back to game
-        </button>
       </div>
     </div>
   );
